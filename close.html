@@ -29,21 +29,8 @@
     .move-right {
       transform: translateX(60px);
     }
-    /* cúi đầu mạnh xuống bụng nam */
     .bow-low {
       transform: rotate(60deg) translateY(40px);
-    }
-    button {
-      position: absolute;
-      bottom: 30px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #ff6b81;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -70,19 +57,17 @@
     </g>
   </svg>
 
-  <button onclick="animate()">Close Pose</button>
-
   <script>
-    function animate() {
+    window.onload = () => {
       const boy = document.getElementById("boy");
       const girl = document.getElementById("girl");
 
-      // di chuyển lại gần nhau
-      boy.classList.add("move-right");
-      girl.classList.add("move-left");
-
-      // cô gái cúi thấp xuống ngang bụng
-      girl.classList.add("bow-low");
+      // delay 0.5s rồi cho action
+      setTimeout(() => {
+        boy.classList.add("move-right");
+        girl.classList.add("move-left");
+        girl.classList.add("bow-low");
+      }, 500);
     }
   </script>
 </body>
