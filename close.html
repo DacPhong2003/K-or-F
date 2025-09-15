@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Close Pose</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #fbecec;
+    }
+    svg {
+      width: 500px;
+      height: 300px;
+    }
+    .char {
+      transition: transform 1.5s ease;
+    }
+    .girl {
+      transform-origin: center top;
+      transition: transform 1.5s ease;
+    }
+    .move-left {
+      transform: translateX(-60px);
+    }
+    .move-right {
+      transform: translateX(60px);
+    }
+    /* cúi đầu mạnh xuống bụng nam */
+    .bow-low {
+      transform: rotate(60deg) translateY(40px);
+    }
+    button {
+      position: absolute;
+      bottom: 30px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #ff6b81;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <svg viewBox="0 0 600 300">
+    <!-- Boy -->
+    <g class="char boy" id="boy" transform="translate(200,60)">
+      <circle cx="0" cy="0" r="20" fill="#fff" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="20" x2="0" y2="100" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="40" x2="-30" y2="70" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="40" x2="30" y2="70" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="100" x2="-25" y2="150" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="100" x2="25" y2="150" stroke="#000" stroke-width="3"/>
+    </g>
+
+    <!-- Girl -->
+    <g class="char girl" id="girl" transform="translate(400,60)">
+      <circle cx="0" cy="0" r="20" fill="#fff" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="20" x2="0" y2="100" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="40" x2="-30" y2="70" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="40" x2="30" y2="70" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="100" x2="-25" y2="150" stroke="#000" stroke-width="3"/>
+      <line x1="0" y1="100" x2="25" y2="150" stroke="#000" stroke-width="3"/>
+    </g>
+  </svg>
+
+  <button onclick="animate()">Close Pose</button>
+
+  <script>
+    function animate() {
+      const boy = document.getElementById("boy");
+      const girl = document.getElementById("girl");
+
+      // di chuyển lại gần nhau
+      boy.classList.add("move-right");
+      girl.classList.add("move-left");
+
+      // cô gái cúi thấp xuống ngang bụng
+      girl.classList.add("bow-low");
+    }
+  </script>
+</body>
+</html>
