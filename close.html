@@ -1,74 +1,177 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Close Pose</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Close Pose — Auto</title>
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #fbecec;
+    :root{
+      --bg:#fff7fb;
+      --card:#fff;
+      --ink:#222;
+      --accent:#ff6b81;
     }
-    svg {
-      width: 500px;
-      height: 300px;
+    html,body{height:100%; margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(160deg,#fff7fb 0%, #f0f8ff 100%);
+      padding:24px;
     }
-    .char {
-      transition: transform 1.5s ease;
+
+    .wrap{
+      width:760px;
+      max-width:96%;
+      height:380px;
+      position:relative;
+      background:var(--card);
+      border-radius:14px;
+      box-shadow: 0 12px 36px rgba(20,30,60,0.08);
+      overflow:hidden;
     }
-    .girl {
-      transform-origin: center top;
-      transition: transform 1.5s ease;
+
+    /* scene area */
+    .stage {
+      position:relative;
+      width:100%;
+      height:100%;
     }
-    .move-left {
-      transform: translateX(-60px);
+
+    /* figure containers (absolute so transforms are easy) */
+    .figure {
+      position:absolute;
+      top:72px;            /* vertical baseline */
+      left:50%;            /* center baseline */
+      width:170px;
+      height:260px;
+      transform-origin:center top;
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+      will-change: transform;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
     }
-    .move-right {
-      transform: translateX(60px);
+
+    /* initial positions (standing apart) */
+    .boy { transform: translateX(-220px); }
+    .girl { transform: translateX(220px); }
+
+    /* pivot inside girl so we can rotate (bow) around head/top nicely */
+    .girl .pivot {
+      width:100%;
+      height:100%;
+      transform-origin: 50% 18px; /* pivot around top-center (near head) */
+      transition: transform 900ms cubic-bezier(.2,.9,.2,1);
+      will-change: transform;
     }
-    .bow-low {
-      transform: rotate(60deg) translateY(40px);
+
+    /* final positions — when .stage has class .final */
+    .stage.final .boy { transform: translateX(-48px); }       /* boy moves closer */
+    .stage.final .girl { transform: translateX(-16px); }      /* girl moves closer horizontally */
+    .stage.final .girl .pivot { transform: rotate(68deg) translateY(34px); } /* girl bows low */
+
+    /* small heart that appears after animation */
+    .heart {
+      position:absolute;
+      left:50%;
+      top:20%;
+      transform:translate(-50%,0) scale(.6);
+      opacity:0;
+      font-size:28px;
+      transition: opacity .6s ease .95s, transform .7s ease .95s;
+      pointer-events:none;
+    }
+    .stage.final .heart {
+      opacity:1;
+      transform:translate(-50%,-56px) scale(1);
+    }
+
+    /* SVG styling (stroke etc) */
+    svg.stick { width:100%; height:100%; overflow:visible; }
+    svg .head { fill:#fff; stroke:var(--ink); stroke-width:3; }
+    svg .limb { stroke:var(--ink); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+
+    /* small caption */
+    .caption{
+      position:absolute;
+      bottom:12px;
+      left:50%;
+      transform:translateX(-50%);
+      font-size:13px;
+      color:#555;
+    }
+
+    @media (max-width:600px){
+      .figure{ width:120px; height:200px; top:60px }
+      .boy { transform: translateX(-160px); }
+      .girl { transform: translateX(160px); }
+      .stage.final .boy { transform: translateX(-30px); }
+      .stage.final .girl { transform: translateX(-10px); }
     }
   </style>
 </head>
 <body>
-  <svg viewBox="0 0 600 300">
-    <!-- Boy -->
-    <g class="char boy" id="boy" transform="translate(200,60)">
-      <circle cx="0" cy="0" r="20" fill="#fff" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="20" x2="0" y2="100" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="40" x2="-30" y2="70" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="40" x2="30" y2="70" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="100" x2="-25" y2="150" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="100" x2="25" y2="150" stroke="#000" stroke-width="3"/>
-    </g>
+  <div class="wrap" role="main" aria-label="Close pose scene">
+    <div class="stage" id="stage">
+      <!-- Boy -->
+      <div class="figure boy" id="boy">
+        <svg class="stick" viewBox="-60 -10 120 220" aria-hidden="true">
+          <!-- head -->
+          <circle class="head" cx="0" cy="14" r="16"></circle>
+          <!-- eyes -->
+          <circle cx="-6" cy="12" r="2.2" fill="#222"></circle>
+          <circle cx="6" cy="12" r="2.2" fill="#222"></circle>
+          <!-- body -->
+          <path class="limb" d="M0 28 L0 90"></path>
+          <!-- arms -->
+          <path class="limb" d="M0 46 L-28 74"></path>
+          <path class="limb" d="M0 46 L28 74"></path>
+          <!-- legs -->
+          <path class="limb" d="M0 90 L-26 140"></path>
+          <path class="limb" d="M0 90 L26 140"></path>
+        </svg>
+      </div>
 
-    <!-- Girl -->
-    <g class="char girl" id="girl" transform="translate(400,60)">
-      <circle cx="0" cy="0" r="20" fill="#fff" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="20" x2="0" y2="100" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="40" x2="-30" y2="70" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="40" x2="30" y2="70" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="100" x2="-25" y2="150" stroke="#000" stroke-width="3"/>
-      <line x1="0" y1="100" x2="25" y2="150" stroke="#000" stroke-width="3"/>
-    </g>
-  </svg>
+      <!-- Girl (with inner pivot to rotate/bow) -->
+      <div class="figure girl" id="girl">
+        <div class="pivot">
+          <svg class="stick" viewBox="-60 -10 120 220" aria-hidden="true">
+            <!-- head -->
+            <circle class="head" cx="0" cy="14" r="16"></circle>
+            <!-- eyes -->
+            <circle cx="-6" cy="12" r="2.2" fill="#222"></circle>
+            <circle cx="6" cy="12" r="2.2" fill="#222"></circle>
+            <!-- body -->
+            <path class="limb" d="M0 28 L0 90"></path>
+            <!-- arms -->
+            <path class="limb" d="M0 46 L-28 74"></path>
+            <path class="limb" d="M0 46 L28 74"></path>
+            <!-- legs -->
+            <path class="limb" d="M0 90 L-26 140"></path>
+            <path class="limb" d="M0 90 L26 140"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- heart -->
+      <div class="heart" aria-hidden="true">❤️</div>
+
+      <div class="caption">(Tự động — animation chạy 1 lần rồi giữ ở tư thế cuối)</div>
+    </div>
+  </div>
 
   <script>
-    window.onload = () => {
-      const boy = document.getElementById("boy");
-      const girl = document.getElementById("girl");
+    // Khi DOM sẵn sàng, chạy animation 1 lần và giữ final pose
+    window.addEventListener('DOMContentLoaded', () => {
+      const stage = document.getElementById('stage');
 
-      // delay 0.5s rồi cho action
+      // delay nhỏ để người dùng thấy trang load rồi animation chạy
       setTimeout(() => {
-        boy.classList.add("move-right");
-        girl.classList.add("move-left");
-        girl.classList.add("bow-low");
-      }, 500);
-    }
+        stage.classList.add('final');
+        // giữ nguyên class 'final' — không remove -> tư thế cuối được giữ
+      }, 350); // 350ms delay trước khi bắt đầu animation
+    });
   </script>
 </body>
 </html>
