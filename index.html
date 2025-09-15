@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Phim người que — Xem</title>
+<style>
+  :root{
+    --bg:#eaf6ff;
+    --ground:#d6f0c8;
+    --accent:#333;
+    --duration-unit:800ms;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: linear-gradient(180deg,var(--bg) 0%, #f7fbff 60%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+
+  .stage {
+    width:900px;
+    max-width:95vw;
+    height:500px;
+    background: linear-gradient(#bfe9ff 0%, #ffffff 60%);
+    border-radius:12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* ground */
+  .ground {
+    position:absolute;
+    left:0;right:0;bottom:0;height:120px;
+    background:linear-gradient(var(--ground),#cfecc7);
+    border-top:3px solid rgba(0,0,0,0.04);
+  }
+
+  /* controls */
+  .center-btn {
+    position: absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    z-index:40;
+    display:flex;gap:12px;
+    align-items:center;
+  }
+  button {
+    font-size:18px;padding:12px 20px;border-radius:10px;border:0;
+    cursor:pointer;background:#ff6b81;color:white;box-shadow:0 6px 14px rgba(255,107,129,0.28);
+  }
+  button.secondary{
+    background:#4b9bf6;
+    box-shadow:0 6px 14px rgba(75,155,246,0.28);
+  }
+  .hud { position:absolute; left:12px; top:12px; color: #2b2b2b; font-weight:600; }
+
+  /* SVG scene sizing */
+  svg.scene { width:100%; height:100%; display:block; }
+
+  /* simple house icons */
+  .house { filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08)); }
+
+  /* trash can */
+  .trash { opacity:0.95; }
+
+  /* transitions for moving items */
+  .moveable { transition: transform 900ms cubic-bezier(.22,.9,.3,1), opacity 400ms; }
+
+  /* stick-figure styling via stroke */
+  .stick { stroke: #111; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+  .stick-head { fill: #111; stroke:none; }
+
+  /* flower */
+  .flower { transform-origin:center; transition: transform 700ms ease, opacity 500ms; }
+
+  /* showing/hiding elements */
+  .hidden{ opacity:0; pointer-events:none; }
+
+  /* small animations */
+  @keyframes nod {
+    0%{ transform: translateY(0); }
+    50%{ transform: translateY(-6px); }
+    100%{ transform: translateY(0); }
+  }
+
+  .sparkle { animation: nod 900ms infinite; transform-origin:center bottom; }
+
+  /* speechless heart pop */
+  .heart {
+    transform-origin:center;
+    transition: transform 600ms cubic-bezier(.2,.9,.3,1), opacity 300ms;
+  }
+
+  /* bridge growth (scaleX transform on group) */
+  .bridge { transform-origin: left center; transition: transform 1200ms cubic-bezier(.2,.9,.3,1); }
+
+  /* kiss heart pop */
+  .kiss-heart { opacity:0; transform: scale(0.5); transition: opacity 400ms, transform 500ms cubic-bezier(.2,.9,.3,1); }
+
+  /* replay show */
+  .controls-bottom {
+    position:absolute; right:12px; bottom:12px; z-index:40;
+  }
+
+  /* responsive tweaks */
+  @media (max-width:640px){
+    .stage{ height:420px; }
+    button{ font-size:16px; padding:10px 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage" role="region" aria-label="Cảnh phim người que">
+    <div class="hud">Phim người que — Bấm "Xem" để bắt đầu</div>
+
+    <!-- Center cover button -->
+    <div class="center-btn" id="startWrap">
+      <button id="startBtn">Xem</button>
+      <button id="skipBtn" class="secondary" title="Bỏ qua hoạt cảnh (nhanh)">Bỏ qua</button>
+    </div>
+
+    <!-- SVG scene -->
+    <svg class="scene" viewBox="0 0 900 500" preserveAspectRatio="xMidYMid meet" aria-hidden="false">
+      <!-- sky decorative sun/cloud -->
+      <g transform="translate(700,70)">
+        <circle r="36" fill="#fff176" opacity="0.95"></circle>
+      </g>
+
+      <!-- houses: girl left, boy right -->
+      <g id="houseGirl" class="house" transform="translate(110,200)">
+        <rect x="-40" y="70" width="120" height="60" rx="6" fill="#fff" stroke="#c55" stroke-width="3"></rect>
+        <polygon points="0,0 140,70 -40,70" fill="#c55" opacity="0.15"></polygon>
+        <rect x="25" y="95" width="30" height="35" rx="3" fill="#c55"></rect>
+      </g>
+
+      <g id="houseBoy" class="house" transform="translate(680,230)">
+        <rect x="-40" y="70" width="120" height="60" rx="6" fill="#fff" stroke="#3a7" stroke-width="3"></rect>
+        <polygon points="0,0 140,70 -40,70" fill="#3a7" opacity="0.12"></polygon>
+        <rect x="25" y="95" width="30" height="35" rx="3" fill="#3a7"></rect>
+      </g>
+
+      <!-- trash can near girl -->
+      <g id="trash" transform="translate(200,320)" class="trash">
+        <rect x="-12" y="-4" width="40" height="46" rx="6" fill="#aab" stroke="#758"></rect>
+        <rect x="-18" y="-14" width="64" height="10" rx="4" fill="#889"></rect>
+      </g>
+
+      <!-- path/ground decorations -->
+      <g transform="translate(0,380)">
+        <rect x="0" y="0" width="900" height="120" fill="transparent"></rect>
+      </g>
+
+      <!-- bridge (initially thin) -->
+      <g id="bridge" transform="translate(270,250)" class="bridge" style="transform:scaleX(0)">
+        <rect x="0" y="60" width="420" height="10" rx="6" fill="#b07cff" opacity="0.9"></rect>
+        <!-- rails -->
+        <rect x="0" y="52" width="420" height="6" rx="4" fill="#9b61ff" opacity="0.6"></rect>
+      </g>
+
+      <!-- boy group (right) -->
+      <g id="boy" transform="translate(720,320)" class="moveable" aria-label="Chàng trai">
+        <!-- stick figure -->
+        <g id="boyBody" transform="translate(0, -14)">
+          <circle class="stick-head" cx="0" cy="-48" r="8"></circle>
+          <path class="stick" d="M0,-40 v-6"></path>
+          <path class="stick" d="M0,-32 v32"></path>
+          <path class="stick" d="M0,0 l18,18"></path>
+          <path class="stick" d="M0,0 l-16,20"></path>
+          <path class="stick" d="M0,-18 l20,-10"></path>
+        </g>
+        <!-- small porch -->
+        <g transform="translate(-30,16)">
+          <rect x="0" y="0" width="60" height="8" rx="3" fill="#e6f7ff"></rect>
+        </g>
+      </g>
+
+      <!-- girl group (left) -->
+      <g id="girl" transform="translate(160,320)" class="moveable" aria-label="Cô gái">
+        <g id="girlBody" transform="translate(0, -14)">
+          <circle class="stick-head" cx="0" cy="-48" r="8"></circle>
+          <path class="stick" d="M0,-40 v-6"></path>
+          <path class="stick" d="M0,-32 v32"></path>
+          <path class="stick" d="M0,0 l16,18"></path>
+          <path class="stick" d="M0,0 l-18,20"></path>
+          <path class="stick" d="M0,-18 l-20,-10"></path>
+        </g>
+      </g>
+
+      <!-- flower element (on boy when given) -->
+      <g id="flower" transform="translate(720,285)" class="flower hidden" aria-hidden="true" >
+        <circle cx="0" cy="0" r="5" fill="#ff4d88"></circle>
+        <path d="M0,5 v12" stroke="#2a8" stroke-width="3" stroke-linecap="round"></path>
+        <ellipse cx="-6" cy="2" rx="4" ry="2" fill="#f8a"></ellipse>
+        <ellipse cx="6" cy="2" rx="4" ry="2" fill="#ffd1dc"></ellipse>
+      </g>
+
+      <!-- small potted plant at girl's home -->
+      <g id="pot" transform="translate(190,360)" class="hidden">
+        <rect x="-8" y="6" width="60" height="14" rx="4" fill="#8b5a3c"></rect>
+        <rect x="6" y="-2" width="36" height="18" rx="4" fill="#fff"></rect>
+      </g>
+
+      <!-- growing flower/bridge plant at girl's location -->
+      <g id="plant" transform="translate(200,330)" class="hidden">
+        <path id="plantStem" d="M20,10 C20,-40 380,-40 380,10" stroke="#2a8" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.9"/>
+      </g>
+
+      <!-- kissing heart -->
+      <g id="kiss" transform="translate(560,260)" class="kiss-heart" aria-hidden="true">
+        <path d="M0 -6
+                 C -10 -34, -68 -10, 0 24
+                 C 68 -10, 10 -34, 0 -6 Z" fill="#ff6b81" opacity="0.95"></path>
+      </g>
+
+    </svg>
+
+    <div class="ground" aria-hidden="true"></div>
+
+    <div class="controls-bottom" id="replayWrap" style="display:none">
+      <button id="replayBtn" class="secondary">Xem lại</button>
+    </div>
+  </div>
+
+<script>
+  // Timeline controller using async/await so it's linear and easy to follow.
+  const startBtn = document.getElementById('startBtn');
+  const startWrap = document.getElementById('startWrap');
+  const skipBtn = document.getElementById('skipBtn');
+  const replayWrap = document.getElementById('replayWrap');
+  const replayBtn = document.getElementById('replayBtn');
+
+  // elements
+  const boy = document.getElementById('boy');
+  const girl = document.getElementById('girl');
+  const flower = document.getElementById('flower');
+  const trash = document.getElementById('trash');
+  const pot = document.getElementById('pot');
+  const plant = document.getElementById('plant');
+  const bridge = document.getElementById('bridge');
+  const kiss = document.getElementById('kiss');
+
+  // helper delays
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+  // convenience: set transform with translate
+  function setPos(el, x, y) {
+    el.style.transform = `translate(${x}px, ${y}px)`;
+  }
+
+  // reset to initial positions
+  function resetScene(){
+    // show button
+    startWrap.style.display = 'flex';
+    replayWrap.style.display = 'none';
+
+    // boy right, girl left
+    boy.style.transform = 'translate(720px,320px)';
+    girl.style.transform = 'translate(160px,320px)';
+    // hide flower near boy
+    flower.classList.add('hidden');
+    flower.setAttribute('transform','translate(720,285)');
+    // trash visible
+    trash.style.opacity = 1;
+    // hide pot and plant and bridge and kiss
+    pot.classList.add('hidden');
+    plant.classList.add('hidden');
+    bridge.style.transform = 'scaleX(0)';
+    bridge.style.opacity = 1;
+    kiss.style.opacity = 0;
+    kiss.style.transform = 'scale(0.6)';
+  }
+
+  // small walk animation (simple transition by changing transform)
+  async function walk(el, fromX, toX, duration=1200){
+    // move by CSS transform, using transition defined in CSS
+    el.style.transition = `transform ${duration}ms cubic-bezier(.22,.9,.3,1)`;
+    el.style.transform = `translate(${toX}px,320px)`;
+    await wait(duration + 50);
+    el.style.transition = ''; // clear transition so later moves aren't unexpected
+  }
+
+  // main sequence
+  async function playSequence(skip=false){
+    startWrap.style.display='none';
+    replayWrap.style.display='none';
+
+    // 1) Boy walks a bit forward with flower in hand, approaches girl
+    flower.classList.remove('hidden');
+    flower.setAttribute('transform','translate(720,285)');
+    // boy moves left toward girl a bit
+    await walk(boy, 720, 540, 900);
+
+    // small nod / offer: bring flower closer to girl (flower moves)
+    flower.setAttribute('transform','translate(560,300)');
+    flower.classList.remove('hidden');
+    await wait(500);
+
+    // 2) Girl reacts and throws flower into trash
+    // girl reaches (pretend) - step forward
+    await walk(girl, 160, 230, 700);
+
+    // short pause
+    await wait(300);
+
+    // girl toss animation: move flower to trash
+    flower.setAttribute('transform','translate(200,285)');
+    // simulate arc by temporary style
+    flower.style.transition = 'transform 700ms cubic-bezier(.2,.8,.25,1)';
+    await wait(700);
+    // hide flower near trash (simulate landing)
+    flower.classList.add('hidden');
+    flower.style.transition = '';
+
+    // 3) Boy looks sad/nod (we just delay) then walks away
+    await wait(400);
+    await walk(boy, 540, 820, 900); // back to his house (right)
+    await wait(200);
+
+    // 4) Girl hesitates, then walks to trash, picks flower
+    await walk(girl, 230, 190, 700);
+    // show flower at girl's hand
+    flower.classList.remove('hidden');
+    flower.setAttribute('transform','translate(200,300)');
+    await wait(300);
+
+    // girl walks home with flower
+    await walk(girl, 190, 300, 900);
+    // move flower to pot
+    flower.setAttribute('transform','translate(200,340)');
+    await wait(500);
+    // show pot and hide flower (simulate planting)
+    pot.classList.remove('hidden');
+    flower.classList.add('hidden');
+
+    await wait(400);
+
+    // 5) Flower grows into plant/bridge from girl's house to boy's house
+    plant.classList.remove('hidden');
+    // animate bridge growth: scaleX from 0 to ~1
+    bridge.style.transform = 'scaleX(0.02)';
+    // small delay then grow
+    await wait(120);
+    bridge.style.transition = 'transform 1400ms cubic-bezier(.2,.9,.3,1)';
+    bridge.style.transform = 'scaleX(1)';
+    // also animate plant path opacity/visibility
+    await wait(1400);
+
+    // 6) Boy sees bridge, walks across toward girl
+    await walk(boy, 820, 470, 1200); // onto bridge
+    await wait(100);
+    await walk(boy, 470, 320, 900); // reach girl side
+
+    // 7) Girl walks a little to meet him (together)
+    await walk(girl, 300, 350, 700);
+
+    // 8) Kiss: show heart and subtle scale
+    kiss.style.opacity = 1;
+    kiss.style.transform = 'scale(1)';
+    // tiny pop
+    await wait(600);
+
+    // final pause then show replay
+    await wait(600);
+    replayWrap.style.display = 'block';
+  }
+
+  // simplified fast-run for skip
+  async function playFast(){
+    // hide start
+    startWrap.style.display='none';
+    // set final positions quickly
+    boy.style.transform = 'translate(320px,320px)';
+    girl.style.transform = 'translate(350px,320px)';
+    bridge.style.transform = 'scaleX(1)';
+    kiss.style.opacity = 1;
+    kiss.style.transform = 'scale(1)';
+    replayWrap.style.display = 'block';
+  }
+
+  // events
+  startBtn.addEventListener('click', async () => {
+    resetScene();
+    // play sequence normally
+    await playSequence(false);
+  });
+
+  skipBtn.addEventListener('click', () => {
+    // quick skip to final
+    resetScene();
+    playFast();
+  });
+
+  replayBtn.addEventListener('click', async () => {
+    resetScene();
+    await wait(200);
+    playSequence();
+  });
+
+  // initial reset
+  resetScene();
+</script>
+</body>
+</html>
