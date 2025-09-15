@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hai người que - Kiss or Fvck</title>
+  <style>
+    :root{
+      --bg:#fff7fb;
+      --card:#ffffff;
+      --accent:#ff6b81;
+      --muted:#777;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(160deg,#fff7fb 0%, #f0f8ff 100%);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#222;
+      padding:24px;
+    }
+
+    .stage{
+      width:900px;
+      max-width:95%;
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(10,10,20,0.08);
+      padding:30px;
+      text-align:center;
+    }
+
+    h1{
+      margin:0 0 8px;
+      color:var(--accent);
+      font-size:26px;
+      letter-spacing:0.4px;
+    }
+    p.lead{ margin:6px 0 20px; color:var(--muted) }
+
+    /* area chứa nhân vật */
+    .arena{
+      position:relative;
+      height:340px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:120px;
+      margin-bottom:22px;
+    }
+
+    /* stick figure bằng SVG container */
+    .figure{
+      width:160px;
+      height:260px;
+      position:relative;
+    }
+
+    /* controls */
+    .controls{
+      display:flex;
+      justify-content:center;
+      gap:18px;
+      margin-top:8px;
+    }
+    button{
+      cursor:pointer;
+      border:0;
+      padding:12px 20px;
+      font-size:16px;
+      border-radius:12px;
+      box-shadow:0 6px 14px rgba(30,30,60,0.08);
+      transition:transform .12s ease, box-shadow .12s;
+    }
+    button:active{ transform:translateY(2px) }
+    .btn-kiss{
+      background:linear-gradient(90deg,#ff9aa2,#ff6b81);
+      color:white;
+    }
+    .btn-fvck{
+      background:linear-gradient(90deg,#6b6bff,#3f3fff);
+      color:white;
+    }
+
+    /* animation: khi kiss-mode on, figures move */
+    .figure.left.kiss-move{ transform: translateX(46px); transition: transform .6s cubic-bezier(.2,.9,.2,1); }
+    .figure.right.kiss-move{ transform: translateX(-46px); transition: transform .6s cubic-bezier(.2,.9,.2,1); }
+
+    /* hearts */
+    .hearts{
+      position:absolute;
+      left:50%;
+      top:20%;
+      transform:translateX(-50%);
+      pointer-events:none;
+    }
+    .heart{
+      width:28px;
+      height:28px;
+      display:inline-block;
+      margin:0 6px;
+      opacity:0;
+      transform:translateY(20px) scale(.6);
+      animation-fill-mode:forwards;
+    }
+    @keyframes popUp {
+      0%{ opacity:0; transform:translateY(18px) scale(.5) rotate(-10deg) }
+      40%{ opacity:1; transform:translateY(-8px) scale(1.05) rotate(0deg) }
+      100%{ opacity:0; transform:translateY(-90px) scale(.8) rotate(10deg) }
+    }
+
+    /* small footer tip */
+    .tip{ margin-top:14px; font-size:13px; color:#666 }
+    @media (max-width:560px){
+      .arena{ gap:40px; height:300px }
+      .figure{ width:120px; height:220px }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <h1>Em yêu anh không?</h1>
+    <p class="lead">Chọn 1: <strong>Kiss</strong> để thử xem hai người que hôn nhau. <strong>Fvck</strong> thì... chuyển sang page khác nhé.</p>
+
+    <div class="arena" id="arena">
+      <!-- Left figure (SVG stick figure) -->
+      <div class="figure left" id="leftFig" aria-hidden="true">
+        <svg viewBox="0 0 120 200" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+          <!-- head -->
+          <circle cx="60" cy="28" r="16" stroke="#222" stroke-width="3" fill="#fff"></circle>
+          <!-- eyes -->
+          <circle cx="53" cy="26" r="2" fill="#222"></circle>
+          <circle cx="67" cy="26" r="2" fill="#222"></circle>
+          <!-- body -->
+          <line x1="60" y1="44" x2="60" y2="110" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- arms -->
+          <line x1="60" y1="60" x2="34" y2="84" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <line x1="60" y1="60" x2="86" y2="84" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- legs -->
+          <line x1="60" y1="110" x2="36" y2="162" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <line x1="60" y1="110" x2="84" y2="162" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- mouth (will move) -->
+          <circle id="mouthL" cx="52" cy="36" r="2" fill="#ff6b81" style="transition:cx .28s"></circle>
+        </svg>
+      </div>
+
+      <!-- hearts -->
+      <div class="hearts" id="hearts" aria-hidden="true"></div>
+
+      <!-- Right figure (mirror) -->
+      <div class="figure right" id="rightFig" aria-hidden="true">
+        <svg viewBox="0 0 120 200" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+          <!-- head -->
+          <circle cx="60" cy="28" r="16" stroke="#222" stroke-width="3" fill="#fff"></circle>
+          <!-- eyes -->
+          <circle cx="53" cy="26" r="2" fill="#222"></circle>
+          <circle cx="67" cy="26" r="2" fill="#222"></circle>
+          <!-- body -->
+          <line x1="60" y1="44" x2="60" y2="110" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- arms -->
+          <line x1="60" y1="60" x2="34" y2="84" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <line x1="60" y1="60" x2="86" y2="84" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- legs -->
+          <line x1="60" y1="110" x2="36" y2="162" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <line x1="60" y1="110" x2="84" y2="162" stroke="#222" stroke-width="3" stroke-linecap="round"></line>
+          <!-- mouth (will move) -->
+          <circle id="mouthR" cx="68" cy="36" r="2" fill="#ff6b81" style="transition:cx .28s"></circle>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-kiss" id="kissBtn">Kiss</button>
+      <button class="btn-fvck" id="fvckBtn">Fvck</button>
+    </div>
+
+    <div class="tip">Tip: Nhấn <strong>Kiss</strong> nhiều lần nếu muốn xem nhiều trái tim 😘</div>
+  </div>
+
+  <script>
+    const kissBtn = document.getElementById('kissBtn');
+    const fvckBtn = document.getElementById('fvckBtn');
+    const leftFig = document.getElementById('leftFig');
+    const rightFig = document.getElementById('rightFig');
+    const hearts = document.getElementById('hearts');
+    const mouthL = document.getElementById('mouthL');
+    const mouthR = document.getElementById('mouthR');
+
+    // tạo 1 đợt hearts
+    function spawnHearts() {
+      // clear existing to avoid chồng lẫn
+      hearts.innerHTML = '';
+      const n = 5;
+      for (let i=0;i<n;i++){
+        const h = document.createElement('div');
+        h.className = 'heart';
+        // SVG heart
+        h.innerHTML = `
+          <svg viewBox="0 0 32 29" width="28" height="28" aria-hidden="true">
+            <path d="M23.6 2c-2-1.6-4.9-1.2-6.6.8-1.7-2-4.6-2.4-6.6-.8-2.6 2.1-2.7 5.9-.2 8.2L16 26l9-15.8c2.5-2.3 2.4-6.1-.4-8.2z" />
+          </svg>`;
+        // vị trí offset nhỏ ngẫu nhiên
+        h.style.left = (i*22 - 40) + 'px';
+        h.style.animation = `popUp 1100ms cubic-bezier(.2,.9,.2,1) ${i*120}ms forwards`;
+        hearts.appendChild(h);
+      }
+    }
+
+    // hiệu ứng kiss: dịch hai người đến gần và di chuyển "môi" để trông như hôn
+    function doKiss() {
+      // add class để dịch chuyển
+      leftFig.classList.add('kiss-move');
+      rightFig.classList.add('kiss-move');
+
+      // di chuyển "môi" vào giữa (thay đổi cx)
+      mouthL.setAttribute('cx', 60);
+      mouthR.setAttribute('cx', 60);
+
+      // spawn hearts
+      spawnHearts();
+
+      // sau 900ms, trả về vị trí ban đầu
+      setTimeout(() => {
+        leftFig.classList.remove('kiss-move');
+        rightFig.classList.remove('kiss-move');
+        mouthL.setAttribute('cx', 52);
+        mouthR.setAttribute('cx', 68);
+        // xóa hearts sau animation
+        setTimeout(()=> hearts.innerHTML = '', 400);
+      }, 1000);
+    }
+
+    kissBtn.addEventListener('click', () => {
+      // mỗi lần bấm trigger kiss
+      doKiss();
+    });
+
+    // fvck -> chuyển trang tới naughty.html
+    fvckBtn.addEventListener('click', () => {
+      // chuyển trang
+      window.location.href = 'naughty.html';
+    });
+
+    // thêm behavior vui: khi rê chuột lên nút Kiss, nó cũng tự "nháy mắt" bằng cách nhỏ
+    kissBtn.addEventListener('mouseover', () => {
+      // random nhẹ trái/phải để trông sống động
+      const jitter = (Math.random()-0.5)*6;
+      kissBtn.style.transform = `translateY(${jitter}px)`;
+      setTimeout(()=> kissBtn.style.transform = '', 200);
+    });
+  </script>
+</body>
+</html>
